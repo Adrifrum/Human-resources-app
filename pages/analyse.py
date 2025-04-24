@@ -1,107 +1,10 @@
 from dash import dcc, register_page, html
 import dash_bootstrap_components as dbc
-import numpy as np
 import plotly.graph_objects as go
 from components import Box
 from themes import theme_light as tl
 import pandas as pd
-import datetime
 import plotly.express as px
-
-pd.set_option('display.max_rows', 100)
-
-today = datetime.date(2021, 11, 22)
-
-'''
-#Load Dataset and keep curre-nt date
-trot = pd.read_csv('/home/adrien/development/python/charlotte_app/webapp_test/data/trotinettes.csv', sep=',', encoding='utf-8')
-
-trot['date_scrapping'] = pd.to_datetime(trot['date_scrapping'], format="%d/%m/%Y %H:%M:%S")
-
-trot = trot.loc[trot['date_scrapping'].dt.date == today]
-
-nb_cumule = (len(trot)*91)
-trot = trot.sort_values('date_scrapping').drop_duplicates(subset=['product_name', 'distributeur'], keep='last')
-
-#Prepare prices
-trot['prix'] = trot['prix'].replace(',', '.', regex=True)
-trot['prix'] = trot['prix'].str.extract('(\d*\.\d+|\d+)')
-trot['prix']= trot['prix'].replace('[\€,]', '', regex=True)
-trot['prix']= trot['prix'].astype('float')
-
-trot = trot[trot['prix'] > 50]
-trot['distributeur'] = trot['distributeur'].replace('Aosom fr', 'aosom.fr', regex=True)
-
-
-
-#Create min dataset
-
-trot_min = trot.sort_values("prix").groupby("product_name", as_index=False).first()
-trot_min['distributeur'] = trot_min['distributeur'].replace('Aosom fr', 'aosom.fr', regex=True)
-trot_min = trot_min.add_suffix('_min')
-
-
-
-#Merge trot and trot_min
-trot = pd.merge(trot,trot_min[['product_name_min', 'prix_min', 'distributeur_min']],left_on='product_name', right_on='product_name_min', how='inner')
-
-
-#calcul diff :
-# Sort DataFrame before grouping.
-trot = trot.sort_values(['product_name', 'distributeur', 'date_scrapping']).reset_index(drop=True)
-
-# Group on keys and call `pct_change` inside `apply`.
-trot['variation'] = (trot['prix'] - trot['prix_min']) / trot['prix_min'] * 100
-trot['variation']= trot['variation'].astype('int')
-
-
-#Frequency by shops 
-freq_count=  trot.groupby(['distributeur','variation']).size().to_frame('count').reset_index()
-
-
-def cat(x):
-    if x > 0:
-        return "Prix Supérieurs chez distributeur"
-    if x < 0:
-        return "Prix Inférieurs chez distributeur"
-    elif x == 0:
-        return "Prix Identiques chez distributeur"
-
-
-freq_count['variation'] = freq_count['variation'].apply(lambda x: cat(x))
-
-freq_count = freq_count.groupby(['distributeur', 'variation'])['count'].sum().to_frame('count').reset_index()
-
-freq_total = freq_count.groupby(['distributeur'])['count'].sum().to_frame('total').reset_index()
-
-freq = pd.merge(freq_count,freq_total,on='distributeur', how='inner')
-freq['pourcentage'] = (freq['count'] / freq['total'] *100).round(1)
-
-#Liste des cas interessants 
-
-trot_diff = trot[trot['variation'] < 1]
-
-
-trot_sample = trot_diff[trot_diff['distributeur'] != trot_diff['distributeur_min']]
-trot_sample = trot_sample[['product_name', 'distributeur', 'prix', 'url', 'distributeur_min', 'prix_min',  'variation']]
-trot_sample = trot_sample.sort_values(['variation'], ascending=False).reset_index(drop=True)
-
-trot_sample['url'] = "https://www.idealo.fr" + trot_sample['url']
-
-trot_sample.columns = ['Nom', 'Distributeur', 'Prix (€)', 'url', 'Distributeur_min','Prix minimum (€)', 'Variation (%)']
-
-trot_drop_link = trot_sample.drop(columns=['url'])
-
-nb_ref_uniq = 35
-
-count_var = 20
-
-freq = freq.sort_values(by=['pourcentage', 'variation'],ascending=False)  
-
-print(trot_sample.shape[0])
-    
-#freq_chart = px.bar(freq, x="distributeur", y="pourcentage", color="variation", category_orders={"variation" : ["Prix Inférieurs chez distributeur", "Prix Identiques chez distributeur", "Prix Supérieurs chez distributeur"]}, color_discrete_map={'Prix Inférieurs chez distributeur': 'red','Prix Identiques chez distributeur': 'red', 'Prix Supérieurs chez distributeur': 'green'}, hover_data=["count", "total"])
-#freq_chart.update_layout(legend_traceorder="reversed")'''
 
 count_var = 20
 
@@ -332,21 +235,3 @@ layout = [
                 ),
             )])
     ])]
-
-
-'''
-children=dbc.Row(html.Div([html.Plaintext(children=f"Liste des {count_var} références avec prix identiques (variation < 1%)", style={"font-size": "20px", "font-family": "Open Sans", "color":"rgb(42,63,95)", "text-align": "center"}),
-                                                          html.Plaintext(html.Table(
-                                                                    # Header
-                                                                    [html.Tr([html.Th(col, style={"outline": "thin solid", "line-height":"50px", "text-align": "center", "padding":"0 40px"}) for col in trot_drop_link.columns], style={"outline": "thin solid", "line-height":"50px", "text-align": "center", "padding":"0 40px"})] +
-
-                                                                    # Body
-                                                                    [html.Tr([
-                                                                        html.Td(trot_sample.iloc[i][col], style={"outline": "thin solid", "text-align": "center"}) if col != 'Prix (€)' 
-                                                                        else html.Td(html.A(id='my-id', href=f"{trot_sample.iloc[i]['url']}", title=trot_sample.iloc[i]['Nom'], children=trot_sample.iloc[i]['Prix (€)'], target='_blank'))
-                                                                        for col in trot_drop_link.columns
-                                                                    ], style={"outline": "thin solid", "text-align": "center"}) for i in range(len(trot_sample))]
-                                                                                    )
-                                                                        )
-                                                        ])),style = {'display': 'flex', 'align-items': 'center', 'justify-content': 'center'}
-'''
